@@ -79,3 +79,15 @@ Built modular frontend components (Login, Register, Dashboard)
 Integrated backend APIs using Axios
 Designed responsive UI using Tailwind CSS
 Iteratively improved UX and UI using AI prompts
+
+## 🎬 Video Demo
+
+Watch the full demo of **Shortify Pro** here: [Loom Video](https://www.loom.com/share/e6264d93f2f74b118a5b9332aa9b4ef4)
+
+This video demonstrates:
+- Signup/Login
+- URL shortening
+- Dashboard functionality
+- Analytics tracking
+- Redirect working
+- Backend logs & database entries
