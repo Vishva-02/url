@@ -1,81 +1,85 @@
 const User = require('../models/User');
-const { ErrorResponse } = require('../middleware/errorMiddleware');
+const jwt = require('jsonwebtoken');
+
+// Helper to generate token
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRE || '30d',
+    });
+};
 
 // @desc    Register user
-// @route   POST /api/v1/auth/register
-// @access  Public
-exports.register = async (req, res, next) => {
+// @route   POST /api/auth/signup
+exports.signup = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
+        console.log(req.body); // 👈 DEBUG (IMPORTANT)
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Please add all fields' });
+        }
+
+        // Check if user exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
         // Create user
         const user = await User.create({
-            name,
+            name, // Optional
             email,
             password,
         });
 
-        sendTokenResponse(user, 201, res);
-    } catch (err) {
-        next(err);
+        if (user) {
+            res.status(201).json({
+                message: "Signup successful ✅",
+                _id: user.id,
+                name: user.name,
+                email: user.email,
+                token: generateToken(user._id),
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid user data' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Login user
-// @route   POST /api/v1/auth/login
-// @access  Public
-exports.login = async (req, res, next) => {
+// @desc    Authenticate a user
+// @route   POST /api/auth/login
+exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validate email & password
-        if (!email || !password) {
-            return next(new ErrorResponse('Please provide an email and password', 400));
-        }
-
-        // Check for user
+        // Check for user email
         const user = await User.findOne({ email }).select('+password');
 
-        if (!user) {
-            return next(new ErrorResponse('Invalid credentials', 401));
+        if (user && (await user.matchPassword(password))) {
+            res.json({
+                _id: user.id,
+                name: user.name,
+                email: user.email,
+                token: generateToken(user._id),
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid credentials' });
         }
-
-        // Check if password matches
-        const isMatch = await user.matchPassword(password);
-
-        if (!isMatch) {
-            return next(new ErrorResponse('Invalid credentials', 401));
-        }
-
-        sendTokenResponse(user, 200, res);
-    } catch (err) {
-        next(err);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Get current logged in user
-// @route   GET /api/v1/auth/me
-// @access  Private
-exports.getMe = async (req, res, next) => {
+// @desc    Get user data
+// @route   GET /api/auth/me
+exports.getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
-
-        res.status(200).json({
-            success: true,
-            data: user,
-        });
-    } catch (err) {
-        next(err);
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-};
-
-// Get token from model, create cookie and send response
-const sendTokenResponse = (user, statusCode, res) => {
-    // Create token
-    const token = user.getSignedJwtToken();
-
-    res.status(statusCode).json({
-        success: true,
-        token,
-    });
 };

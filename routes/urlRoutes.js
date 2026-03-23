@@ -1,9 +1,12 @@
-const express = require("express");
+const express = require('express');
+const { shortenUrl, getUserUrls, getUrlAnalytics } = require('../controllers/urlController');
+const { protect } = require('../middleware/authMiddleware');
+const { validateUrl } = require('../middleware/validationMiddleware');
+
 const router = express.Router();
 
-// example route
-router.get("/", (req, res) => {
-  res.send("URL route working");
-});
+router.post('/shorten', protect, validateUrl, shortenUrl);
+router.get('/', protect, getUserUrls);
+router.get('/:id/analytics', protect, getUrlAnalytics);
 
 module.exports = router;

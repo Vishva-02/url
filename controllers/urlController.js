@@ -24,7 +24,7 @@ exports.shortenUrl = async (req, res, next) => {
             shortCode = customAlias;
         } else {
             // Generate shortCode
-            shortCode = nanoid(7);
+            shortCode = nanoid(6);
         }
 
         // Create URL record
@@ -60,9 +60,37 @@ exports.getUserUrls = async (req, res, next) => {
             data: urls,
         });
     } catch (err) {
-        next(err);
+        res.status(500).json({ message: err.message });
     }
 };
+
+// @desc    Redirect to original URL
+// @route   GET /:shortCode
+// @access  Public
+exports.redirectUrl = async (req, res, next) => {
+    try {
+        const url = await Url.findOne({ shortCode: req.params.shortCode });
+
+        if (!url) {
+            return res.status(404).json({ message: 'No URL found for this alias' });
+        }
+
+        url.clicks++;
+        await url.save();
+
+        // Record the physical click analytics
+        await Click.create({
+            urlId: url._id,
+            ip: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers['user-agent']
+        });
+
+        return res.redirect(url.originalUrl);
+    } catch (err) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 // @desc    Get analytics for a single URL
 // @route   GET /api/v1/urls/:id/analytics
 // @access  Private
