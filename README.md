@@ -80,6 +80,16 @@ Integrated backend APIs using Axios
 Designed responsive UI using Tailwind CSS
 Iteratively improved UX and UI using AI prompts
 
+⏱️ Backend Uptime (Important)
+
+Free hosting services like Render may put the backend to sleep after inactivity.
+
+To prevent this, UptimeRobot is used:
+
+Sends automated requests every few minutes
+Keeps backend server active (avoids cold starts)
+Ensures faster response time for users
+
 ## 🎬 Video Demo
 
 Watch the full demo of **Shortify Pro** here: [Loom Video](https://www.loom.com/share/66fff8cff72044849aabd20de5dd839e)
