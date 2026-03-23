@@ -5,6 +5,7 @@ const helmet = require("helmet");
 
 const urlRoutes = require("./routes/urlRoutes");
 const authRoutes = require("./routes/authRoutes");
+const healthRoutes = require("./routes/healthRoutes");
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(morgan("dev"));
 app.use(helmet());
 
 // Routes
+app.use("/health", healthRoutes);
 app.use("/api/url", urlRoutes);
 app.use("/api/auth", authRoutes);
 
